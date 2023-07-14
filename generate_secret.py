@@ -1,6 +1,7 @@
 import os
+
 from cryptography.fernet import Fernet
-from dotenv import load_dotenv, find_dotenv, set_key
+from dotenv import find_dotenv, load_dotenv, set_key
 
 load_dotenv(find_dotenv())
 
