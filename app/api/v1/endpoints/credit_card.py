@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from typing import List
 
 from app.core.database import get_db
 from app.models.credit_card import CreditCard as CreditCardModel
@@ -9,7 +10,7 @@ from app.services.crypto_service import CryptoService
 router = APIRouter()
 
 
-@router.post("/credit-card", response_model=CreditCard)
+@router.post("/credit-card", response_model=CreditCard,tags=["Cartões de Crédito"])
 def create_credit_card(
     card: CreditCardCreate,
     db: Session = Depends(get_db),
@@ -23,12 +24,12 @@ def create_credit_card(
     return db_card
 
 
-@router.get("/credit-card", response_model=List[CreditCard])
+@router.get("/credit-card", response_model=List[CreditCard],tags=["Cartões de Crédito"])
 def read_credit_cards(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return db.query(CreditCardModel).offset(skip).limit(limit).all()
 
 
-@router.get("/credit-card/{card_id}", response_model=CreditCard)
+@router.get("/credit-card/{card_id}", response_model=CreditCard,tags=["Cartões de Crédito"])
 def read_credit_card(card_id: int, db: Session = Depends(get_db)):
     card = db.query(CreditCardModel).filter(CreditCardModel.id == card_id).first()
     if card is None:
