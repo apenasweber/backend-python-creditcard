@@ -1,5 +1,6 @@
 from datetime import date
 from typing import Optional
+from pydantic import ConfigDict
 
 from pydantic import BaseModel
 
@@ -19,8 +20,8 @@ class CreditCardSchema(CreditCardBaseSchema):
     id: int
     number: str  
 
-    class Config:
-        orm_mode = True
+    class ConfigDict:
+        from_attributes = True
 
 class CreditCardUpdateSchema(BaseModel):
     exp_date: str
