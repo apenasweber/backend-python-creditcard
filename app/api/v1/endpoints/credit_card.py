@@ -8,6 +8,8 @@ from app.services.crypto_service import CryptoService
 from datetime import datetime
 from creditcard import CreditCard
 from app.models.credit_card import CreditCardModel
+from app.core.auth import get_current_user
+from app.models.user import User
 
 router = APIRouter()
 
@@ -17,6 +19,7 @@ def create_credit_card(
     card: CreditCardCreateSchema,
     db: Session = Depends(get_db),
     crypto_service: CryptoService = Depends(),
+    current_user: User = Depends(get_current_user)
 ):
     try:
         exp_date_str = card.exp_date.strftime("%m/%Y")
