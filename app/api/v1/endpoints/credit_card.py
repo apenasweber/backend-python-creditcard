@@ -38,11 +38,15 @@ def create_credit_card(
     if card.cvv and (len(card.cvv) < 3 or len(card.cvv) > 4):
         raise HTTPException(status_code=400, detail="CVV inválido")
 
-    db_card = CreditCardModel(**card.dict(), number=encrypted_number)
+    card_data = card.dict()
+    card_data["number"] = encrypted_number
+
+    db_card = CreditCardModel(**card_data)
     db.add(db_card)
     db.commit()
     db.refresh(db_card)
     return db_card
+
 
 @router.get("/credit-card", response_model=List[CreditCardSchema],tags=["Cartões de Crédito"])
 def read_credit_cards(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
@@ -53,4 +57,23 @@ def read_credit_card(card_id: int, db: Session = Depends(get_db)):
     card = db.query(CreditCardModel).filter(CreditCardModel.id == card_id).first()
     if card is None:
         raise HTTPException(status_code=404, detail="Card not found")
+    return card
+
+@router.put("/credit-card/{id}", response_model=CreditCardSchema,tags=["Cartões de Crédito"])
+def update_credit_card(
+    id: int,
+    card_update: CreditCardUpdateSchema,
+    db: Session = Depends(get_db),
+    crypto_service: CryptoService = Depends(),
+):
+    card = db.query(CreditCardModel).filter(CreditCardModel.id == id).first()
+
+    if not card:
+        raise HTTPException(status_code=404, detail="Cartão de crédito não encontrado")
+
+    card.exp_date = card_update.exp_date
+    card.holder = card_update.holder
+    card.cvv = card_update.cvv
+
+    db.commit()
     return card
