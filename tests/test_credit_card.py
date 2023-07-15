@@ -1,99 +1,147 @@
-import pytest
 from datetime import date
+import pytest
 from app.models.credit_card import CreditCardModel
+from app.main import app
+from app.core.database import get_db
+from fastapi.testclient import TestClient
+
+@pytest.fixture(scope="module")
+def client():
+    with TestClient(app) as client:
+        yield client
 
 
-def test_exp_date_valid():
-    # Data válida e maior que a data atual
-    exp_date = date.today().replace(year=date.today().year + 1)
-    cc = CreditCardModel(exp_date=exp_date)
-    assert cc.is_exp_date_valid()
+@pytest.fixture(scope="module")
+def db_session():
+    # Set up the database session for testing
+    session = get_db()
+    yield session
+    session.close()
 
+class TestCreditCardModel:
+    def test_exp_date_valid(self):
+        # Valid and future expiration date
+        exp_date = date.today().replace(year=date.today().year + 1)
+        cc = CreditCardModel(exp_date=exp_date)
+        assert cc.is_exp_date_valid()
 
-def test_exp_date_invalid():
-    # Data inválida
-    exp_date = "2022-13-01"  # Mês inválido
-    cc = CreditCardModel(exp_date=exp_date)
-    assert not cc.is_exp_date_valid()
+    def test_exp_date_invalid(self):
+        # Invalid expiration date
+        exp_date = "2022-13-01"  # Invalid month
+        cc = CreditCardModel(exp_date=exp_date)
+        assert not cc.is_exp_date_valid()
 
-    # Data menor que a data atual
-    exp_date = date.today().replace(year=date.today().year - 1)
-    cc = CreditCardModel(exp_date=exp_date)
-    assert not cc.is_exp_date_valid()
+        # Expiration date in the past
+        exp_date = date.today().replace(year=date.today().year - 1)
+        cc = CreditCardModel(exp_date=exp_date)
+        assert not cc.is_exp_date_valid()
 
+    def test_holder_valid(self):
+        # Holder with more than 2 characters
+        holder = "John Doe"
+        cc = CreditCardModel(holder=holder)
+        assert cc.is_holder_valid()
 
-def test_holder_valid():
-    # Holder com mais de 2 caracteres
-    holder = "John Doe"
-    cc = CreditCardModel(holder=holder)
-    assert cc.is_holder_valid()
+    def test_holder_invalid(self):
+        # Empty holder
+        holder = ""
+        cc = CreditCardModel(holder=holder)
+        assert not cc.is_holder_valid()
 
+        # Holder with less than 2 characters
+        holder = "A"
+        cc = CreditCardModel(holder=holder)
+        assert not cc.is_holder_valid()
 
-def test_holder_invalid():
-    # Holder vazio
-    holder = ""
-    cc = CreditCardModel(holder=holder)
-    assert not cc.is_holder_valid()
+    def test_number_valid(self):
+        # Valid card number
+        number = "4539578763621486"  # Valid Visa card number
+        cc = CreditCardModel(number=number)
+        assert cc.is_number_valid()
 
-    # Holder com menos de 2 caracteres
-    holder = "A"
-    cc = CreditCardModel(holder=holder)
-    assert not cc.is_holder_valid()
+    def test_number_invalid(self):
+        # Invalid card number
+        number = "1111111111111111"
+        cc = CreditCardModel(number=number)
+        assert not cc.is_number_valid()
 
+    def test_cvv_valid(self):
+        # CVV with 3 characters
+        cvv = "123"
+        cc = CreditCardModel(cvv=cvv)
+        assert cc.is_cvv_valid()
 
-def test_number_valid():
-    # Número de cartão válido
-    number = "4539578763621486"  # Visa card válido
-    cc = CreditCardModel(number=number)
-    assert cc.is_number_valid()
+        # CVV with 4 characters
+        cvv = "1234"
+        cc = CreditCardModel(cvv=cvv)
+        assert cc.is_cvv_valid()
 
+    def test_cvv_invalid(self):
+        # CVV with less than 3 characters
+        cvv = "12"
+        cc = CreditCardModel(cvv=cvv)
+        assert not cc.is_cvv_valid()
 
-def test_number_invalid():
-    # Número de cartão inválido
-    number = "1111111111111111"
-    cc = CreditCardModel(number=number)
-    assert not cc.is_number_valid()
+        # CVV with more than 4 characters
+        cvv = "12345"
+        cc = CreditCardModel(cvv=cvv)
+        assert not cc.is_cvv_valid()
 
+    @pytest.mark.parametrize(
+        "exp_date, holder, number, cvv, is_valid",
+        [
+            # Valid case
+            (date.today().replace(year=date.today().year + 1), "John Doe", "4539578763621486", "123", True),
+            # Invalid case: Invalid expiration date
+            ("2022-13-01", "John Doe", "4539578763621486", "123", False),
+            # Invalid case: Invalid holder
+            (date.today().replace(year=date.today().year + 1), "", "4539578763621486", "123", False),
+            # Invalid case: Invalid card number
+            (date.today().replace(year=date.today().year + 1), "John Doe", "1111111111111111", "123", False),
+            # Invalid case: Invalid CVV
+            (date.today().replace(year=date.today().year + 1), "John Doe", "4539578763621486", "12345", False),
+        ]
+    )
+    def test_credit_card_validation(self, exp_date, holder, number, cvv, is_valid):
+        cc = CreditCardModel(exp_date=exp_date, holder=holder, number=number, cvv=cvv)
+        assert cc.is_valid() == is_valid
 
-def test_cvv_valid():
-    # CVV com 3 caracteres
-    cvv = "123"
-    cc = CreditCardModel(cvv=cvv)
-    assert cc.is_cvv_valid()
+class TestCreditCardCreateOperations:
+    def test_create_credit_card_valid(self, client):  # Added self parameter
+        card_data = {
+            "exp_date": "2024-07-01",
+            "holder": "John Doe",
+            "number": "4539578763621486",
+            "cvv": "123",
+        }
+        response = client.post("/credit-card", json=card_data)
+        assert response.status_code == 200
+        assert response.json()["holder"] == "John Doe"
+        # Additional assertions for the response data
 
-    # CVV com 4 caracteres
-    cvv = "1234"
-    cc = CreditCardModel(cvv=cvv)
-    assert cc.is_cvv_valid()
+    def test_create_credit_card_invalid(self, client):  # Added self parameter
+        card_data = {
+            "exp_date": "2022-13-01",
+            "holder": "",
+            "number": "1111111111111111",
+            "cvv": "12345",
+        }
+        response = client.post("/credit-card", json=card_data)
+        assert response.status_code == 400
 
+        # Assert that the credit card was not saved in the database
+        db_card = db_session.query(CreditCardModel).filter_by(holder="").first()
+        assert db_card is None
 
-def test_cvv_invalid():
-    # CVV com menos de 3 caracteres
-    cvv = "12"
-    cc = CreditCardModel(cvv=cvv)
-    assert not cc.is_cvv_valid()
+class TestCreditCardReadOperations:
+    pass
 
-    # CVV com mais de 4 caracteres
-    cvv = "12345"
-    cc = CreditCardModel(cvv=cvv)
-    assert not cc.is_cvv_valid()
+class TestCreditCardUpdateOperations:
+    pass
 
+class TestCreditCardDeleteOperations:
+    pass
 
-@pytest.mark.parametrize(
-    "exp_date, holder, number, cvv, is_valid",
-    [
-        # Caso válido
-        (date.today().replace(year=date.today().year + 1), "John Doe", "4539578763621486", "123", True),
-        # Caso inválido: Data inválida
-        ("2022-13-01", "John Doe", "4539578763621486", "123", False),
-        # Caso inválido: Holder inválido
-        (date.today().replace(year=date.today().year + 1), "", "4539578763621486", "123", False),
-        # Caso inválido: Número de cartão inválido
-        (date.today().replace(year=date.today().year + 1), "John Doe", "1111111111111111", "123", False),
-        # Caso inválido: CVV inválido
-        (date.today().replace(year=date.today().year + 1), "John Doe", "4539578763621486", "12345", False),
-    ]
-)
-def test_credit_card_validation(exp_date, holder, number, cvv, is_valid):
-    cc = CreditCardModel(exp_date=exp_date, holder=holder, number=number, cvv=cvv)
-    assert cc.is_valid() == is_valid
+class TestCreditCardEndpoints:
+    pass
+
