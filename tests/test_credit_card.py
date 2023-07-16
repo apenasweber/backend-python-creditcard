@@ -13,7 +13,6 @@ def client():
 
 @pytest.fixture(scope="module")
 def db_session():
-    # Set up the database session for testing
     session = get_db()
     yield session
     session.close()
@@ -107,7 +106,7 @@ class TestCreditCardModel:
         assert cc.is_valid() == is_valid
 
 class TestCreditCardCreateOperations:
-    def test_create_credit_card_valid(self, client):  # Added self parameter
+    def test_create_credit_card_valid(self, client):  
         card_data = {
             "exp_date": "2024-07-01",
             "holder": "John Doe",
@@ -117,9 +116,9 @@ class TestCreditCardCreateOperations:
         response = client.post("/credit-card", json=card_data)
         assert response.status_code == 200
         assert response.json()["holder"] == "John Doe"
-        # Additional assertions for the response data
+        
 
-    def test_create_credit_card_invalid(self, client):  # Added self parameter
+    def test_create_credit_card_invalid(self, client):  
         card_data = {
             "exp_date": "2022-13-01",
             "holder": "",
@@ -129,7 +128,7 @@ class TestCreditCardCreateOperations:
         response = client.post("/credit-card", json=card_data)
         assert response.status_code == 400
 
-        # Assert that the credit card was not saved in the database
+        
         db_card = db_session.query(CreditCardModel).filter_by(holder="").first()
         assert db_card is None
 
@@ -140,7 +139,28 @@ class TestCreditCardUpdateOperations:
     pass
 
 class TestCreditCardDeleteOperations:
-    pass
+    def test_delete_credit_card_valid(self, client, db_session):  
+        card_data = {
+            "exp_date": "2024-07-01",
+            "holder": "John Doe",
+            "number": "4539578763621486",
+            "cvv": "123",
+        }
+        response = client.post("/credit-card", json=card_data)
+        assert response.status_code == 200
+        created_card = response.json()
+
+        response = client.delete(f"/credit-card/{created_card['id']}")
+        assert response.status_code == 200
+        assert response.json() == {"message": "Credit card deleted successfully"}
+
+        db_card = db_session.query(CreditCardModel).filter_by(id=created_card['id']).first()
+        assert db_card is None
+
+    def test_delete_credit_card_invalid(self, client):  
+        response = client.delete("/credit-card/99999999")  
+        assert response.status_code == 404
+
 
 class TestCreditCardEndpoints:
     pass
