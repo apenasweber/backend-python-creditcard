@@ -6,6 +6,11 @@ WORKDIR /app
 
 # Copy the requirements file to the working directory
 COPY requirements.txt .
+RUN apk add --no-cache libffi-dev
+
+RUN apk update && apk add --no-cache gcc musl-dev libffi-dev
+
+RUN apk update && apk add --no-cache git
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
@@ -20,5 +25,6 @@ ENV ALEMBIC_CONFIG=/app/alembic.ini
 EXPOSE 8000
 
 # Run the Alembic upgrade command and start the application
-CMD alembic upgrade head && \
-  uvicorn main:app --host 0.0.0.0 --port 8000
+CMD uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 && \
+    alembic upgrade head
+  
