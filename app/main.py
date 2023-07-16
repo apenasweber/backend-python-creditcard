@@ -6,8 +6,8 @@ from app.api.v1.endpoints.login import login_router
 
 app = FastAPI()
 
-app.include_router(credit_card_router, prefix="/api/v1")
 app.include_router(login_router, prefix="/api/v1")
+app.include_router(credit_card_router, prefix="/api/v1")
 
 origins = ["*"]
 

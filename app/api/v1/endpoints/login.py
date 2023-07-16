@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException
 from app.api.v1.auth.auth_handler import signJWT
 from app.core.settings import settings
 
-login_router = APIRouter(tags=["login"])
+login_router = APIRouter(tags=["Login"])
 
 @login_router.post("/login", response_model=dict)
 def login(username: str, password: str):
