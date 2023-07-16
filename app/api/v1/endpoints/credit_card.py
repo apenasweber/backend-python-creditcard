@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
+import calendar
+
 from app.core.database import get_db
 from app.schemas.credit_card import CreditCardSchema, CreditCardCreateSchema, CreditCardUpdateSchema
 from datetime import datetime
@@ -18,33 +20,35 @@ def create_credit_card(
 ):
     try:
         exp_date_str = card.exp_date.strftime("%m/%Y")
-        exp_date = datetime.strptime(exp_date_str, "%m/%Y")
-        if exp_date < datetime.now():
-            raise HTTPException(status_code=400, detail="Data de expiração inválida")
+        exp_month, exp_year = map(int, exp_date_str.split('/'))
+        exp_date = datetime(year=exp_year, month=exp_month, day=1)
+
+        if exp_date <= datetime.now():
+            raise HTTPException(status_code=400, detail="Invalid expiration date")
     except ValueError:
-        raise HTTPException(status_code=400, detail="Data de expiração inválida")
+        raise HTTPException(status_code=400, detail="Invalid expiration date")
 
     if not card.holder or len(card.holder) < 3:
-        raise HTTPException(status_code=400, detail="Titular inválido")
+        raise HTTPException(status_code=400, detail="Invalid card holder")
 
     cc = CreditCard(card.number)
     if not cc.is_valid():
-        raise HTTPException(status_code=400, detail="Número de cartão inválido")
-
-    
+        raise HTTPException(status_code=400, detail="Invalid credit card number")
 
     if card.cvv and (len(card.cvv) < 3 or len(card.cvv) > 4):
-        raise HTTPException(status_code=400, detail="CVV inválido")
+        raise HTTPException(status_code=400, detail="Invalid CVV")
+
+    _, last_day = calendar.monthrange(exp_year, exp_month)
+    formatted_exp_date = datetime(year=exp_year, month=exp_month, day=last_day)
 
     card_data = card.dict()
-    
+    card_data['exp_date'] = formatted_exp_date
 
     db_card = CreditCardModel(**card_data)
     db.add(db_card)
     db.commit()
     db.refresh(db_card)
     return db_card
-
 
 @router.get("/credit-card", response_model=List[CreditCardSchema],tags=["Credit Cards"])
 def read_credit_cards(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
@@ -74,3 +78,14 @@ def update_credit_card(
 
     db.commit()
     return card
+
+@router.delete("/credit-card/{card_id}", tags=["Credit Cards"])
+def delete_credit_card(card_id: int, db: Session = Depends(get_db)):
+    card = db.query(CreditCardModel).filter(CreditCardModel.id == card_id).first()
+    if card is None:
+        raise HTTPException(status_code=404, detail="Card not found")
+
+    db.delete(card)
+    db.commit()
+
+    return {"message": "Credit card deleted successfully"}
