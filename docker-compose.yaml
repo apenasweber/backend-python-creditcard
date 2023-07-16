@@ -1,27 +1,23 @@
 version: "3"
 services:
+  db:
+    image: postgres
+    environment:
+      DB_USER: $DB_USER
+      DB_PASSWORD: $DB_PASSWORD
+      DB_NAME: $DB_NAME
+    ports:
+      - "5432:5432"
+
   api:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - 8080:8000
-    depends_on:
-      - db
-      - alembic
-  db:
-    image: postgres
-    ports:
-      - 5432:5432
     environment:
-      - POSTGRES_USER=username
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=backend_credit_cards
-  alembic:
-    build:
-      context: .
-      dockerfile: Dockerfile
+      DB_USER: $DB_USER
+      DB_PASSWORD: $DB_PASSWORD
+      DB_NAME: $DB_NAME
     ports:
-      - 8000:8000
+      - "8000:8000"
     depends_on:
       - db
