@@ -1,24 +1,31 @@
 import pytest
 from fastapi.testclient import TestClient
-from app.main import app
+
 from app.core.database import get_db
 from app.core.settings import settings
+from app.main import app
+
 
 @pytest.fixture(scope="class")
 def token(client):
-    response = client.post(f"api/v1/login?username={settings.DB_USER}&password={settings.DB_PASSWORD}")
+    response = client.post(
+        f"api/v1/login?username={settings.DB_USER}&password={settings.DB_PASSWORD}"
+    )
     return response.json()["access_token"]
+
 
 @pytest.fixture(scope="class")
 def client():
     with TestClient(app) as client:
         yield client
 
+
 @pytest.fixture(scope="class")
 def db_session():
     session = next(get_db())
     yield session
     session.close()
+
 
 @pytest.fixture(scope="class")
 def card_id(client, token):

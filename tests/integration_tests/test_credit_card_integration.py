@@ -14,7 +14,9 @@ class TestCreditCardIntegration:
         created_card = response.json()
 
         # Test read operation
-        response = client.get(f"api/v1/credit-card/{created_card['id']}", headers=headers)
+        response = client.get(
+            f"api/v1/credit-card/{created_card['id']}", headers=headers
+        )
         assert response.status_code == 200
         assert response.json() == created_card
 
@@ -24,19 +26,27 @@ class TestCreditCardIntegration:
             "holder": "Jane Doe",
             "number": created_card["number"],
             "cvv": created_card["cvv"],
-            "brand": created_card["brand"]
-            }
+            "brand": created_card["brand"],
+        }
 
-        response = client.put(f"api/v1/credit-card/{created_card['id']}", headers=headers, json=update_data)
+        response = client.put(
+            f"api/v1/credit-card/{created_card['id']}",
+            headers=headers,
+            json=update_data,
+        )
         assert response.status_code == 200
         created_card.update(update_data)
         assert response.json() == created_card
 
         # Test delete operation
-        response = client.delete(f"api/v1/credit-card/{created_card['id']}", headers=headers)
+        response = client.delete(
+            f"api/v1/credit-card/{created_card['id']}", headers=headers
+        )
         assert response.status_code == 200
         assert response.json() == {"message": "Credit card deleted successfully"}
 
         # Confirm deletion
-        response = client.get(f"api/v1/credit-card/{created_card['id']}", headers=headers)
+        response = client.get(
+            f"api/v1/credit-card/{created_card['id']}", headers=headers
+        )
         assert response.status_code == 404

@@ -18,10 +18,11 @@ class CreditCardCreateSchema(CreditCardBaseSchema):
 
 class CreditCardSchema(CreditCardBaseSchema):
     id: int
-    number: str  
+    number: str
 
     class ConfigDict:
         from_attributes = True
+
 
 class CreditCardUpdateSchema(BaseModel):
     exp_date: str

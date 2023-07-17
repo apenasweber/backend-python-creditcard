@@ -1,7 +1,9 @@
+from datetime import datetime
+
+from creditcard import CreditCard
 from sqlalchemy import Column, Date, Integer, String
 from sqlalchemy.orm import declarative_base
-from datetime import datetime
-from creditcard import CreditCard
+
 Base = declarative_base()
 
 
@@ -13,7 +15,7 @@ class CreditCardModel(Base):
     holder = Column(String, index=True)
     number = Column(String, index=True)
     cvv = Column(String, index=True)
-    brand = Column(String, index=True) 
+    brand = Column(String, index=True)
 
     def is_exp_date_valid(self):
         try:
