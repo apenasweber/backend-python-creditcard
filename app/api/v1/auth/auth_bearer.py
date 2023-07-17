@@ -18,5 +18,5 @@ class JWTBearer(HTTPBearer):
 
 
     def verify_jwt(self, jwtoken: str) -> bool:
-        payload = decodeJWT(jwtoken)
+        payload = decodeJWT(jwtoken.credentials)
         return bool(payload)
