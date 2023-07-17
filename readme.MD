@@ -1,20 +1,34 @@
 # Backend Credit Card
 
-This is a CRUD API for credit cards. Some business rules have been applied:
+This is a CRUD API for credit cards with 91% of coverage tests. Some business rules have been applied:
 
-- **exp_date**
-  -- Check if it is a valid date.
-  -- If valid, it cannot be less than "today's" date.
+- **exp_date**<br>
+  -- Check if it is a valid date.<br>
+  -- If valid, it cannot be less than "today's" date.<br>
   -- In the database, this date should be recorded in the format yyyy-MM-[last_day_of_month], for example: 02/2022, should be 2022-02-28
-- **holder**
+- **holder**<br>
   -- It should be a required field and must have more than 2 characters.
-- **number**
-  -- Check if the credit card number is valid, using the lib [https://github.com/MaisTodos/python-creditcard](https://github.com/MaisTodos/python-creditcard)
-  -- To install, use `pip install git+https://github.com/maistodos/python-creditcard.git@main`
+- **number**<br>
+  -- Check if the credit card number is valid, using the lib [https://github.com/MaisTodos/python-creditcard](https://github.com/MaisTodos/python-creditcard)<br>
+  -- To install, use `pip install git+https://github.com/maistodos/python-creditcard.git@main`<br>
   -- This field should be stored in an encrypted way in the database.
-- **cvv**
-  -- This field is not required, but if present in the payload, it must have a length between 3 and 4 characters.
+- **cvv**<br>
+  -- This field is not required, but if present in the payload, it must have a length between 3 and 4 characters.<br>
   -- This is a numeric field.
+
+## Fast way to test the application
+
+1.  `git clone https://github.com/apenasweber/backend-python-creditcard`
+2.  `cd backend-python-creditcard`
+3.  Rename the `".env-example"` file to `".env"`
+4.  With make, build/run application and the unit/integration tests with: `make test`. You gonna see the tests results and coverage report.
+5.  Now you can access [http://localhost:8000/docs](http://localhost:8000/docs) to test endpoints manually.
+6.  Click on /login endpoint
+7.  Click on "Try it out"
+8.  Insert username(username) and password(password) and click on execute.
+9.  You gonna receive a access_token: copy it.
+10. On top of page, on right side, click on "Authorize" and paste the token there, finally click in Authorize.
+11. Now you can use all endpoints authenticated(20 minutes time expiration for token).
 
 ## Architecture
 
@@ -51,8 +65,6 @@ This is a CRUD API for credit cards. Some business rules have been applied:
 ┣ 📂tests<br>
 ┃ ┣ 📂integration_tests<br>
 ┃ ┃ ┗ 📜test_credit_card_integration.py<br>
-┃ ┣ 📂stress_tests<br>
-┃ ┃ ┗ 📜locustfile.py<br>
 ┃ ┣ 📂unit_tests<br>
 ┃ ┃ ┗ 📜test_credit_card.py<br>
 ┃ ┗ 📜**init**.py<br>
@@ -108,69 +120,14 @@ The benefits of this architecture include:
 | Postgres | Database                                                                                                                                            |
 | Alembic  | Tool that abstracts greater complexities for creating migrations                                                                                    |
 | Pytest   | Python unit testing framework                                                                                                                       |
-| Locust   | Python load testing framework                                                                                                                       |
-
-## How to run the application
-
-### Requirements for execution:
-
-1. Docker/docker-compose
-2. Renomeie o arquivo ".env.example" para ".env"
-
-### Steps for execution
-
-1.  `git clone https://github.com/apenasweber/backend-python-creditcard`
-2.  `cd backend-python-creditcard`
-3.  Rename the `".env-example"` file to `".env"`
-4.  `docker-compose up --build`
-5.  Access [http://localhost:8000/docs](http://localhost:8000/docs)
-6.  Click on /login endpoint, Try it out, insert username(username) and password(password), finally click on execute.
-7.  You gonna receive a token: copy it, click on the "Authorize" button on right top of page and paste the token there clicking in Authorize.
-8.  Now you can use all endpoints authenticated(20 minutes time expiration for token)
 
 The application can also be run using make, with the following commands and helpers:
 |Tool | Reason
 |----------------|-------------------------------|
-| `make build` | Builds the application and applies alembic migrations |
-| `make run` | Runs only the API container|
-| `make up` | Runs the whole application (API, database, and coinbase_feeder)|
+| `make test`| Build, run application and run unit/integration and coverage tests |
 | `make down` | Takes down the application|
-| `make bash` | Accesses the bash terminal of the API container|
-| `make unit_tests`| Executes unit tests |
 | `make isort` | Applies isort throughout the repository to sort imports |
 | `make black` | Applies the black linter |
-
-## Testes
-
-To execute them, use in the terminal, at the project root:
-
-### 1. Unit Tests
-
-```bash
-docker compose run --service-ports -e --rm api bash -c "pytest ${test} --disable-warnings
-```
-
-### 2. Stress Tests
-
-```bash
-docker-compose up -d
-```
-
-```bash
-docker ps
-```
-
-Now copy the API container id
-
-```bash
-docker exec -it {container_id da api} bash
-```
-
-```bash
-locust -f app/tests/stress_tests/locustfile.py --headless -u 1000 -r 17 --run-time 1m --host http://127.0.0.1:8000
-```
-
-Note: Load test results may vary or fail depending on your firewall, connection quality, among other factors.
 
 ## Database
 

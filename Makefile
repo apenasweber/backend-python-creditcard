@@ -3,7 +3,8 @@ export PYTHONDONTWRITEBYTECODE=1
 
 test:
 	docker-compose up --build -d
-	docker-compose exec api python -m pytest . --disable-warnings
+	docker-compose exec api coverage run -m pytest . --disable-warnings
+	docker-compose exec api coverage report
 
 down: ## down all containers
 	docker-compose down -v
