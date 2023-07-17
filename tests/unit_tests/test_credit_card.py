@@ -1,7 +1,10 @@
 from datetime import date
+
 import pytest
-from app.models.credit_card import CreditCardModel
+
 from app.main import app
+from app.models.credit_card import CreditCardModel
+
 
 class TestCreditCardModel:
     def test_exp_date_valid(self):
@@ -76,23 +79,48 @@ class TestCreditCardModel:
         "exp_date, holder, number, cvv, is_valid",
         [
             # Valid case
-            (date.today().replace(year=date.today().year + 1), "John Doe", "4539578763621486", "123", True),
+            (
+                date.today().replace(year=date.today().year + 1),
+                "John Doe",
+                "4539578763621486",
+                "123",
+                True,
+            ),
             # Invalid case: Invalid expiration date
             ("2022-13-01", "John Doe", "4539578763621486", "123", False),
             # Invalid case: Invalid holder
-            (date.today().replace(year=date.today().year + 1), "", "4539578763621486", "123", False),
+            (
+                date.today().replace(year=date.today().year + 1),
+                "",
+                "4539578763621486",
+                "123",
+                False,
+            ),
             # Invalid case: Invalid card number
-            (date.today().replace(year=date.today().year + 1), "John Doe", "1111111111111111", "123", False),
+            (
+                date.today().replace(year=date.today().year + 1),
+                "John Doe",
+                "1111111111111111",
+                "123",
+                False,
+            ),
             # Invalid case: Invalid CVV
-            (date.today().replace(year=date.today().year + 1), "John Doe", "4539578763621486", "12345", False),
-        ]
+            (
+                date.today().replace(year=date.today().year + 1),
+                "John Doe",
+                "4539578763621486",
+                "12345",
+                False,
+            ),
+        ],
     )
     def test_credit_card_validation(self, exp_date, holder, number, cvv, is_valid):
         cc = CreditCardModel(exp_date=exp_date, holder=holder, number=number, cvv=cvv)
         assert cc.is_valid() == is_valid
 
+
 class TestCreditCardCreateOperations:
-    def test_create_credit_card_valid(self, client, token):  
+    def test_create_credit_card_valid(self, client, token):
         card_data = {
             "exp_date": "2024-07-01",
             "holder": "John Doe",
@@ -106,7 +134,6 @@ class TestCreditCardCreateOperations:
         print(response.text)
         assert response.status_code == 200
         assert response.json()["holder"] == "John Doe"
-        
 
     def test_create_credit_card_invalid(self, client, token, db_session):
         card_data = {
@@ -121,6 +148,7 @@ class TestCreditCardCreateOperations:
 
         db_card = db_session.query(CreditCardModel).filter_by(holder="").first()
         assert db_card is None
+
 
 class TestCreditCardReadOperations:
     def test_read_credit_card_valid(self, client, token, card_id):
@@ -144,7 +172,9 @@ class TestCreditCardUpdateOperations:
             "cvv": "124",
         }
         headers = {"Authorization": f"Bearer {token}"}
-        response = client.put(f"api/v1/credit-card/{card_id}", headers=headers, json=card_data)
+        response = client.put(
+            f"api/v1/credit-card/{card_id}", headers=headers, json=card_data
+        )
         assert response.status_code == 200
         assert response.json()["holder"] == "John Smith"
 
@@ -156,11 +186,14 @@ class TestCreditCardUpdateOperations:
             "cvv": "12345",
         }
         headers = {"Authorization": f"Bearer {token}"}
-        response = client.put("api/v1/credit-card/99999999", headers=headers, json=card_data)
+        response = client.put(
+            "api/v1/credit-card/99999999", headers=headers, json=card_data
+        )
         assert response.status_code == 404
 
+
 class TestCreditCardDeleteOperations:
-    def test_delete_credit_card_valid(self, client, token, db_session):  
+    def test_delete_credit_card_valid(self, client, token, db_session):
         card_data = {
             "exp_date": "2024-07-01",
             "holder": "John Doe",
@@ -172,15 +205,18 @@ class TestCreditCardDeleteOperations:
         assert response.status_code == 200
         created_card = response.json()
 
-        response = client.delete(f"api/v1/credit-card/{created_card['id']}", headers=headers)
+        response = client.delete(
+            f"api/v1/credit-card/{created_card['id']}", headers=headers
+        )
         assert response.status_code == 200
         assert response.json() == {"message": "Credit card deleted successfully"}
 
-        db_card = db_session.query(CreditCardModel).filter_by(id=created_card['id']).first()
+        db_card = (
+            db_session.query(CreditCardModel).filter_by(id=created_card["id"]).first()
+        )
         assert db_card is None
 
-    def test_delete_credit_card_invalid(self, client, token):  
+    def test_delete_credit_card_invalid(self, client, token):
         headers = {"Authorization": f"Bearer {token}"}
-        response = client.delete("api/v1/credit-card/99999999", headers=headers)  
+        response = client.delete("api/v1/credit-card/99999999", headers=headers)
         assert response.status_code == 404
-

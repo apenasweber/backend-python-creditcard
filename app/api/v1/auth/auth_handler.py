@@ -25,6 +25,3 @@ def decodeJWT(token: str) -> dict:
     except Exception as e:
         print(f"Unexpected error: {e}")
         return {}
-
-
-
