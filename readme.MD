@@ -16,6 +16,89 @@ This is a CRUD API for credit cards. Some business rules have been applied:
   -- This field is not required, but if present in the payload, it must have a length between 3 and 4 characters.
   -- This is a numeric field.
 
+## Architecture
+
+📦backend-python-creditcard<br>
+┣ 📂alembic<br>
+┃ ┣ 📂versions<br>
+┃ ┣ 📜env.py<br>
+┃ ┣ 📜README<br>
+┃ ┗ 📜script.py.mako<br>
+┣ 📂app<br>
+┃ ┣ 📂api<br>
+┃ ┃ ┗ 📂v1<br>
+┃ ┃ ┃ ┣ 📂auth<br>
+┃ ┃ ┃ ┃ ┣ 📜auth_bearer.py<br>
+┃ ┃ ┃ ┃ ┣ 📜auth_handler.py<br>
+┃ ┃ ┃ ┃ ┗ 📜**init**.py<br>
+┃ ┃ ┃ ┣ 📂endpoints<br>
+┃ ┃ ┃ ┃ ┣ 📜credit_card.py<br>
+┃ ┃ ┃ ┃ ┣ 📜login.py<br>
+┃ ┃ ┃ ┃ ┗ 📜**init**.py<br>
+┃ ┃ ┃ ┗ 📜**init**.py<br>
+┃ ┣ 📂core<br>
+┃ ┃ ┣ 📜database.py<br>
+┃ ┃ ┣ 📜settings.py<br>
+┃ ┃ ┗ 📜**init**.py<br>
+┃ ┣ 📂models<br>
+┃ ┃ ┣ 📜credit_card.py<br>
+┃ ┃ ┗ 📜**init**.py<br>
+┃ ┣ 📂schemas<br>
+┃ ┃ ┣ 📜credit_card.py<br>
+┃ ┃ ┗ 📜**init**.py<br>
+┃ ┣ 📜main.py<br>
+┃ ┗ 📜**init**.py<br>
+┣ 📂tests<br>
+┃ ┣ 📂integration_tests<br>
+┃ ┃ ┗ 📜test_credit_card_integration.py<br>
+┃ ┣ 📂stress_tests<br>
+┃ ┃ ┗ 📜locustfile.py<br>
+┃ ┣ 📂unit_tests<br>
+┃ ┃ ┗ 📜test_credit_card.py<br>
+┃ ┗ 📜**init**.py<br>
+┣ 📜.coverage<br>
+┣ 📜.coveragerc<br>
+┣ 📜.env<br>
+┣ 📜.env-example<br>
+┣ 📜.gitignore<br>
+┣ 📜alembic.ini<br>
+┣ 📜docker-compose.yaml<br>
+┣ 📜Dockerfile<br>
+┣ 📜Makefile<br>
+┣ 📜readme.MD<br>
+┗ 📜requirements.txt<br>
+
+My project's architecture is organized following some principles of the Domain-Driven Design (DDD) and the clean architecture. Here's a quick overview:
+
+- **alembic**: This folder contains the Alembic configurations and migrations. Alembic is a database migration tool that I use to track changes in my database schema and helps manage schema migration scripts.
+- **app**: This is where the main application logic resides. It's broken down into several subdirectories:
+
+  - **api**: It contains the API versioning and its endpoints. In my case, the version v1 of the API.
+
+    - **auth**: This is where the authentication logic is handled. I have different modules for different authentication functionalities.
+    - **endpoints**: It contains the different API endpoints.
+
+  - **core**: This directory holds my project's core functionality, such as database connections and settings.
+  - **models**: It includes the database models. These are Pythonic representations of my database tables.
+  - **schemas**: It contains Pydantic models. Pydantic models allow for data parsing, validation, and serialization (converting it into JSON).
+
+- **tests**: This directory contains all my test cases, divided into unit, integration, and stress tests.
+- **.env and .env-example**: These files are used to store environment variables.
+- **docker-compose.yaml and Dockerfile**: These files are used to containerize the application and manage services, providing an isolated environment for running the app.
+- **Makefile**: A simple way to organize code compilation. It contains a set of directives used by a make build automation tool to generate a target/goal.
+- **requirements.txt**: This file lists all of the Python library dependencies that need to be installed using pip install.
+
+The benefits of this architecture include:
+
+1.  **Separation of Concerns**: Each part of the application has a specific job, making the code easier to understand, maintain, and develop.
+2.  **Testability**: With separate sections for different aspects of the app, it's easier to test individual units of code.
+3.  **Scalability**: With Docker and modular code, it's easier to scale up the application as needed.
+4.  **Organization**: Code is easier to find in a well-structured project.
+5.  **Version Control**: The separation also helps in managing version control, as changes can be isolated to specific areas of the project.
+6.  **Database migration management**: With Alembic, database schema changes are tracked and managed effectively. This simplifies schema evolution and version control.
+7.  **Reusability**: With a well-defined structure, it's easier to reuse components as needed.
+8.  **Security**: Storing sensitive data in environment variables (.env file) protects the information from being exposed.
+
 ## Stack
 
 | Tool     | Reason                                                                                                                                              |
