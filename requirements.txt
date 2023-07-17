@@ -28,7 +28,6 @@ iniconfig==2.0.0
 isort==5.12.0
 itsdangerous==2.1.2
 Jinja2==3.1.2
-jwt==1.3.1
 locust==2.15.1
 Mako==1.2.4
 MarkupSafe==2.1.3
@@ -39,7 +38,6 @@ pathspec==0.11.1
 platformdirs==3.8.1
 pluggy==1.2.0
 psutil==5.9.5
-psycopg2==2.9.6
 psycopg2-binary==2.9.6
 pycparser==2.21
 pydantic==2.0.3
@@ -49,7 +47,6 @@ PyJWT==2.3.0
 pytest==7.4.0
 python-creditcard @ git+https://github.com/maistodos/python-creditcard.git@6b6bcc5d975985337c35e5c1a4f87d861bcac731
 python-dotenv==1.0.0
-pywin32==306
 pyzmq==25.1.0
 requests==2.31.0
 roundrobin==0.0.4
