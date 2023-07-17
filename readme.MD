@@ -125,6 +125,7 @@ The application can also be run using make, with the following commands and help
 |Tool | Reason
 |----------------|-------------------------------|
 | `make test`| Build, run application and run unit/integration and coverage tests |
+| `make clear`| Down and clean all docker images, volumes and containers |
 | `make down` | Takes down the application|
 | `make isort` | Applies isort throughout the repository to sort imports |
 | `make black` | Applies the black linter |

@@ -15,3 +15,7 @@ isort: # sort imports PEP8
 black: # linter to organize readable code
 	docker-compose run --service-ports -e --rm api bash -c "python -m black ."
 	
+clear:
+	docker-compose down -v
+	docker system prune -af
+	docker volume prune -f
