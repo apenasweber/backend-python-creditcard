@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
+from creditcard.exceptions import BrandNotFound
 
 import calendar
 
@@ -34,7 +35,11 @@ def create_credit_card(
     cc = CreditCard(card.number)
     if not cc.is_valid():
         raise HTTPException(status_code=400, detail="Invalid credit card number")
-
+    try:
+        brand = cc.get_brand()
+    except BrandNotFound:
+        raise HTTPException(status_code=400, detail="Cannot determine the brand of the credit card")
+    
     if card.cvv and (len(card.cvv) < 3 or len(card.cvv) > 4):
         raise HTTPException(status_code=400, detail="Invalid CVV")
 
@@ -43,6 +48,7 @@ def create_credit_card(
 
     card_data = card.dict()
     card_data['exp_date'] = formatted_exp_date
+    card_data['brand'] = brand
 
     db_card = CreditCardModel(**card_data)
     db.add(db_card)

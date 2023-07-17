@@ -24,7 +24,9 @@ class TestCreditCardIntegration:
             "holder": "Jane Doe",
             "number": created_card["number"],
             "cvv": created_card["cvv"],
-        }
+            "brand": created_card["brand"]
+            }
+
         response = client.put(f"api/v1/credit-card/{created_card['id']}", headers=headers, json=update_data)
         assert response.status_code == 200
         created_card.update(update_data)

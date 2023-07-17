@@ -13,6 +13,7 @@ class CreditCardModel(Base):
     holder = Column(String, index=True)
     number = Column(String, index=True)
     cvv = Column(String, index=True)
+    brand = Column(String, index=True) 
 
     def is_exp_date_valid(self):
         try:

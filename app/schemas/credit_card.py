@@ -9,6 +9,7 @@ class CreditCardBaseSchema(BaseModel):
     holder: str
     number: str
     cvv: Optional[str] = None
+    brand: Optional[str] = None
 
 
 class CreditCardCreateSchema(CreditCardBaseSchema):
@@ -26,3 +27,4 @@ class CreditCardUpdateSchema(BaseModel):
     exp_date: str
     holder: str
     cvv: str
+    brand: Optional[str] = None
