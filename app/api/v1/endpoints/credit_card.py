@@ -50,8 +50,8 @@ def create_credit_card(
     _, last_day = calendar.monthrange(exp_year, exp_month)
     formatted_exp_date = datetime(year=exp_year, month=exp_month, day=last_day)
 
-    card_data = card.dict()
-    card_data["exp_date"] = formatted_exp_date
+    card_data = card.model_dump()
+    card_data["exp_date"] = formatted_exp_date.strftime("%Y-%m-%d")
     card_data["brand"] = brand
 
     db_card = CreditCardModel(**card_data)
