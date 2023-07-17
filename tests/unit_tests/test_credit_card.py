@@ -4,6 +4,15 @@ from app.models.credit_card import CreditCardModel
 from app.main import app
 from app.core.database import get_db
 from fastapi.testclient import TestClient
+from app.core.settings import settings
+
+@pytest.fixture(scope="module")
+def token(client):
+    response = client.post(f"api/v1/login?username={settings.DB_USER}&password={settings.DB_PASSWORD}")
+    return response.json()["access_token"]
+
+
+
 
 @pytest.fixture(scope="module")
 def client():
@@ -13,7 +22,6 @@ def client():
 
 @pytest.fixture(scope="module")
 def db_session():
-    # Set up the database session for testing
     session = get_db()
     yield session
     session.close()
@@ -107,41 +115,92 @@ class TestCreditCardModel:
         assert cc.is_valid() == is_valid
 
 class TestCreditCardCreateOperations:
-    def test_create_credit_card_valid(self, client):  # Added self parameter
+    def test_create_credit_card_valid(self, client, token):  
         card_data = {
             "exp_date": "2024-07-01",
             "holder": "John Doe",
             "number": "4539578763621486",
             "cvv": "123",
         }
-        response = client.post("/credit-card", json=card_data)
+        headers = {"Authorization": f"Bearer {token}"}
+        response = client.post("/credit-card", headers=headers, json=card_data)
         assert response.status_code == 200
         assert response.json()["holder"] == "John Doe"
-        # Additional assertions for the response data
+        
 
-    def test_create_credit_card_invalid(self, client):  # Added self parameter
+    def test_create_credit_card_invalid(self, client, token):  
         card_data = {
             "exp_date": "2022-13-01",
             "holder": "",
             "number": "1111111111111111",
             "cvv": "12345",
         }
-        response = client.post("/credit-card", json=card_data)
+        headers = {"Authorization": f"Bearer {token}"}
+        response = client.post("/credit-card", headers=headers, json=card_data)
         assert response.status_code == 400
 
-        # Assert that the credit card was not saved in the database
+        
         db_card = db_session.query(CreditCardModel).filter_by(holder="").first()
         assert db_card is None
 
 class TestCreditCardReadOperations:
-    pass
+    def test_read_credit_card_valid(self, client, token, db_session):
+        headers = {"Authorization": f"Bearer {token}"}
+        response = client.get("/credit-card/1", headers=headers)
+        assert response.status_code == 200
+        assert response.json()["holder"] == "John Doe"
+
+    def test_read_credit_card_invalid(self, client, token):
+        headers = {"Authorization": f"Bearer {token}"}
+        response = client.get("/credit-card/99999999", headers=headers)
+        assert response.status_code == 404
 
 class TestCreditCardUpdateOperations:
-    pass
+    def test_update_credit_card_valid(self, client, token, db_session):
+        card_data = {
+            "exp_date": "2024-08-01",
+            "holder": "John Smith",
+            "number": "4539578763621487",
+            "cvv": "124",
+        }
+        headers = {"Authorization": f"Bearer {token}"}
+        response = client.put("/credit-card/1", headers=headers, json=card_data)
+        assert response.status_code == 200
+        assert response.json()["holder"] == "John Smith"
+
+    def test_update_credit_card_invalid(self, client, token):
+        card_data = {
+            "exp_date": "2022-13-01",
+            "holder": "",
+            "number": "1111111111111111",
+            "cvv": "12345",
+        }
+        headers = {"Authorization": f"Bearer {token}"}
+        response = client.put("/credit-card/99999999", headers=headers, json=card_data)
+        assert response.status_code == 404
 
 class TestCreditCardDeleteOperations:
-    pass
+    def test_delete_credit_card_valid(self, client, token, db_session):  
+        card_data = {
+            "exp_date": "2024-07-01",
+            "holder": "John Doe",
+            "number": "4539578763621486",
+            "cvv": "123",
+        }
+        headers = {"Authorization": f"Bearer {token}"}
+        response = client.post("/credit-card", headers=headers, json=card_data)
+        assert response.status_code == 200
+        created_card = response.json()
 
-class TestCreditCardEndpoints:
-    pass
+        response = client.delete(f"/credit-card/{created_card['id']}", headers=headers)
+        assert response.status_code == 200
+        assert response.json() == {"message": "Credit card deleted successfully"}
+
+        db_card = db_session.query(CreditCardModel).filter_by(id=created_card['id']).first()
+        assert db_card is None
+
+    def test_delete_credit_card_invalid(self, client, token):  
+        headers = {"Authorization": f"Bearer {token}"}
+        response = client.delete("/credit-card/99999999", headers=headers)  
+        assert response.status_code == 404
 
