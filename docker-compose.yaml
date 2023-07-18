@@ -11,6 +11,7 @@ services:
 
   api:
     build: .
+    restart: always
     environment:
       DB_HOST: ${DB_HOST}
       DB_NAME: ${DB_NAME}
