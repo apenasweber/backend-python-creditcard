@@ -30,6 +30,8 @@ This is a CRUD API for credit cards with 91% of coverage tests. Some business ru
 10. On top of page, on right side, click on "Authorize" and paste the token there, finally click in Authorize.
 11. Now you can use all endpoints authenticated(20 minutes time expiration for token).
 
+P.S: In case of receive problems building application, like ERROR 137(memory), please use `make clear` and, after that, `make test` again, so we gonna rebuild application and execute the tests/coverage.
+
 ## Architecture
 
 📦backend-python-creditcard<br>
